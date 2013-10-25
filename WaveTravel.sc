@@ -96,26 +96,13 @@ WaveTravelVoice {
 
 			// control-rate fade synths
 			// a one-shot control-rate envelope
+			//// FIXME: this default curve setting is not really doing it.
+			////// sounds like a dip in power at the middle of the xfade.
 			SynthDef.new(\fadeEnv, { arg out, dur, start=0.0, end=1.0, curve=\sine;
-				// control-rate buffer playback:
 				var env = Env.new([start, end], [dur], curve);
 				ReplaceOut.kr(out, EnvGen.kr(env, doneAction:2));
 			}).send(s);
 
-			
-
-			// fill buffers for fades
-			sinBuf = Buffer.alloc(s, fadeBufSize);
-			cosBuf = Buffer.alloc(s, fadeBufSize);
-			s.sync;
-			
-			sinBuf.setn( 0, Array.fill(fadeBufSize, { arg i; 
-				sin(i.asFloat / (fadeBufSize - 1).asFloat * pi * 0.5) 
-			}) );
-			cosBuf.setn( 0, Array.fill(fadeBufSize, { arg i; 
-				cos(i.asFloat / (fadeBufSize - 1).asFloat * pi * 0.5)
-			}) );
-			
 			// 12-channel amplitude bus
 			ampBus = Bus.control(s, 12);
 
@@ -131,7 +118,7 @@ WaveTravelVoice {
 
 	//	WaveTravel.play(position, rate)
 	// start a note-sequence playing
-	// position is given in samples!
+	// note: position is given in samples!
 	play { arg pos = 0.0, rate=1.0, atk=0.5, rel=0.5, curve=\cub;
 		Routine ({
 			var time, syn, dur, target, prev;
