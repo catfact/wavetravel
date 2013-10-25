@@ -1,7 +1,10 @@
 // wavetraveler application.
 /*
+	top-level execution script.
+
 	first implementation using environment vars.
 	should wrap in a class when "finished"
+
 */
 
 // external execution 
@@ -55,7 +58,6 @@ Routine {
 	// instantiate graphics
 	{ x.value("gfx.scd"); }.defer;
 	
-
 	// MIDI
 	//	x.value("midi.scd");
 
@@ -63,21 +65,3 @@ Routine {
 	
 
 }.play;
-
-
-
-/*
-
-	midi interface:
-
-	first key press chooses trajectory 
-	2nd key plays sound at given trajectory
-
-
-
-~route_data
-~route_data[~ui_route_select].times
-~slider_channel[0].value
-*/
-
-// touchOSC
