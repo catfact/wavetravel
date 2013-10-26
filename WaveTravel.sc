@@ -55,41 +55,55 @@ WaveTravelVoice {
 	// classvar waveTravelVoiceWatcher;
 
 	*new { arg serv;
-		^super.new.init(serv);
+		^super.new.init;
+
 	}
 
 	init { arg s;
-		
-		Routine.new({
-			if(s.serverRunning.not, {
-				s.boot;
-				s.sync;
-			});
 
-			// buffer playback synth
-			// one-shot with duration
-			SynthDef.new(\waveTravelPlay, {
-				arg out, bufnum, 
-				amp = #[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-				dur=1.0, pos=0.0, rate=1.0,
-				atk = 0.1, rel=0.1, curve=\cubed;
-				var ampenv, play;
+		postln("init a WaveTravelVOice. wtf");
+		route = WaveTravelRoute.new;
+	}
 
-				ampenv = EnvGen.ar (
-					Env.linen ( 
-						attackTime:atk, 
-						// sustainTime:dur - atk - rel, 
+
+	// some really weird stuff is going on on the mac.
+	// having trouble using .sync and accessing the server object from here.
+	// it doesn't really matter, there's nothing in .init waiting on asnychronous stuff.
+	run { arg s;
+		//		Routine {
+		/*
+		if(s.serverRunning.not, {
+		s.boot;
+		s.sync;
+		});
+		*/
+
+		//s.dump;
+
+		// buffer playback synth
+		// one-shot with duration
+		SynthDef.new(\waveTravelPlay, {
+			arg out, bufnum,
+			amp = #[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+			dur=1.0, pos=0.0, rate=1.0,
+			atk = 0.1, rel=0.1, curve=\cubed;
+			var ampenv, play;
+
+			ampenv = EnvGen.ar (
+				Env.linen (
+					attackTime:atk,
+						// sustainTime:dur - atk - rel,
 						// actually add atk and rel to the duration.
 						// result is a delayed crossfade
-						sustainTime:dur, 
-						releaseTime:rel, 
+						sustainTime:dur,
+						releaseTime:rel,
 						curve:curve
-					), doneAction:2 
+					), doneAction:2
 				);
 				play = PlayBuf.ar(numChannels:1, bufnum:bufnum, startPos:pos, rate:rate);
-				Out.ar( out, play * ampenv * amp ); 
+				Out.ar( out, play * ampenv * amp );
 			}).send(s);
-			
+
 			s.sampleRate.asFloat.postln;
 			s.options.blockSize.asFloat.postln;
 
@@ -106,14 +120,11 @@ WaveTravelVoice {
 			// 12-channel amplitude bus
 			ampBus = Bus.control(s, 12);
 
-			route = WaveTravelRoute.new;
-
 			ig = Group.new(s);
 			xg = Group.after(ig);
 			og = Group.after(xg);
 
-		}).play; // init routine
-
+//		}.play;
 	}
 
 	//	WaveTravel.play(position, rate)
@@ -132,7 +143,7 @@ WaveTravelVoice {
 					\bufnum, bufnum, \dur, dur, \pos, pos, \rate, rate,
 					\atk, atk, \rel, rel, \curve, curve
 				]).map(\amp, ampBus);
-					
+
 				// fade in
 				postln("fading in.");
 				target = route.targets[0];
@@ -148,20 +159,24 @@ WaveTravelVoice {
 					this.pan(prev, target, time);
 					time.wait;
 				});
+
 				// perform remaining loops
 				postln("performing remaining loops.");
 				(route.numLoops - 1).do({ arg i;
 					if (i == (route.numLoops - 2), {
 						// last loop, duration includes fadeout
 						dur = route.times.sum;
+						}, {
+							dur = route.times[0..3].sum;
 					});
-					postln("loop count: " ++ (i+1));
+					postln("loop index: " ++ i ++ " , duration: " ++ dur);
+
+					// spawn synth for this loop
+					syn = Synth.new(\waveTravelPlay, [
+						\bufnum, bufnum, \dur, dur, \pos, pos, \rate, rate,
+						\atk, atk, \rel, rel, \curve, curve
+					]).map(\amp, ampBus);
 					4.do({ arg i;
-						// spawn synth for this loop
-						syn = Synth.new(\waveTravelPlay, [
-							\bufnum, bufnum, \dur, dur, \pos, pos, \rate, rate,
-							\atk, atk, \rel, rel, \curve, curve
-						]).map(\amp, ampBus);
 
 						postln("node: " ++ (i+1));
 						prev = target;
@@ -172,18 +187,18 @@ WaveTravelVoice {
 						time.wait;
 					});
 				});
-			}, {
-				// if this is the only loop, do the same thing,
-				// except with no loops and fadeout at the end
-				postln("performing single loop..");
-				dur = route.times[0..3].sum;
-				// spawn synth
-				syn = Synth.new(\waveTravelPlay, [
-					\bufnum, bufnum, \dur, dur, \pos, pos, \rate, rate,
-					\atk, atk, \rel, rel, \curve, curve
-				]).map(\amp, ampBus);
-				// fade in
-				postln("fading in...");
+				}, {
+					// if this is the only loop, do the same thing,
+					// except with no loops and fadeout at the end
+					postln("performing single loop..");
+					dur = route.times.sum;
+					// spawn synth
+					syn = Synth.new(\waveTravelPlay, [
+						\bufnum, bufnum, \dur, dur, \pos, pos, \rate, rate,
+						\atk, atk, \rel, rel, \curve, curve
+					]).map(\amp, ampBus);
+					// fade in
+					postln("fading in...");
 				target = route.targets[0];
 				time = route.times[0];
 				this.fadeIn(target, time);
@@ -197,7 +212,7 @@ WaveTravelVoice {
 					postln(" [ prev, target, time: ] : " ++ [prev, target, time]);
 					this.pan(prev, target, time);
 					time.wait;
-				});			
+				});
 				// perform fadeout
 				this.fadeOut(route.times[4]);
 			});
@@ -209,15 +224,15 @@ WaveTravelVoice {
 	// WaveTravel.pan(target, value)
 	// pan/fadein
 	pan { arg prev, target, time;
-		
+
 		//		var maxIdx, maxVal;
 		// find index of bus with highest value
 		ampBus.getn(12, {
-			arg val; // array of bus values		
+			arg val; // array of bus values
 			// fade out
 			Synth.new(\fadeEnv, [
 				\out, prev,
-				\start, val[prev], 
+				\start, val[prev],
 				\end, 0.0,
 				\dur, time
 			]);
@@ -235,8 +250,7 @@ WaveTravelVoice {
 	fadeIn { arg target, time;
 		// fade in
 		Synth.new(\fadeEnv, [
-			\buf, sinBuf.bufnum, 
-			\out, target, 
+			\out, target,
 			\start, 0.0,
 			\end, 1.0,
 			\dur, time
@@ -244,7 +258,7 @@ WaveTravelVoice {
 	} // .fadeIn
 
 	// fadeout
-	fadeOut { arg time;	
+	fadeOut { arg time;
 		// if any bus is nonzero, fade it out
 		ampBus.getn(12, {
 			arg val; // array of values

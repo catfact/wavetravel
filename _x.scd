@@ -7,13 +7,16 @@
 
 */
 
-// external execution 
-x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
+// external execution
+~topdir = "/Users/don\ buchla/Desktop/wavetravel-master";
+// Document class seems pretyt broken on mac, sc3.6
+//x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
+x = { |p| this.executeFile(~topdir ++"/" ++ p); };
 
 
 //////////////////////////
 /// FIXME: bad practice to use global env variables.
-/// included files may or may not assume the existence of these. 
+/// included files may or may not assume the existence of these.
 /// should wrap in e.g. WaveTravelApp
 /// globals
 ~num_voices = 6;
@@ -29,39 +32,56 @@ x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
 /////////////////////////
 
 // path for sound files
-~src_dir = 	"/home/emb/snd/src";
+//~src_dir = 	"/home/emb/snd/src";
+~src_dir = ~topdir ++ "/snd";
+
+
 Routine {
+	s = Server.local;
+//	s.freeAll;
 
-	s.freeAll;
+	s.waitForBoot {
 
-	w = Array.fill(~num_voices, { WaveTravelVoice.new(s); });
+		w = Array.fill(~num_voices, { WaveTravelVoice.new(s) });
+		w.do({ arg voice, i; voice.run(s); });
+		s.sync;
+		// fill list of buffers from directory of soundfiles
+		// this will crap out with enough files (hundreds or thousands)
+		~bufs = List.new;
 
-	// fill list of buffers from directory of soundfiles
-	// this will crap out with enough files (hundreds or thousands)
-	~bufs = List.new;
-	// FIXME: (i guess) - won't work on windows. use Platform
-	p = Pipe.new("ls " ++ ~src_dir, "r");
-	~filename = p.getLine;
-	while( {~filename.notNil }, {
-		~bufs.add( Buffer.read(s, ~src_dir ++ "/" ++ ~filename) );
+		// FIXME: (i guess) - won't work on windows. use Platform
+
+		postln("searching for sounds in : " ++ ~src_dir);
+
+	/*
+		p = Pipe.new("ls " ++ ~src_dir, "r");
+		~filename = p.getLine;
+		while( {~filename.notNil }, {
 		~bufs.add( Buffer.read(s, ~src_dir ++ "/" ++ ~filename) );
 		~filename = p.getLine;
 		~filename.postln;
-	});
-	p.close;
+		});
+		p.close;
+*/
 
-	// UI
+		/// ughh...
+		// Pipe wont work cause don's home directory has a space in its name.
+		// awesome
+		~bufs.add( Buffer.read(s, ~src_dir ++ "/" ++ "261.wav") );
+		s.sync;
 
-	// define glue
-	x.value("ui.scd");
 
-	// instantiate graphics
-	{ x.value("gfx.scd"); }.defer;
-	
-	// MIDI
-	//	x.value("midi.scd");
+		// UI
+		// define glue
+		x.value("ui.scd");
+		// instantiate graphic widgets
+		{ x.value("gfx.scd"); }.defer;
 
-	// initial values.. ?? 
-	
+		// MIDI
+		//	x.value("midi.scd");
+
+		// initial values.. ??
+	}
+
 
 }.play;
