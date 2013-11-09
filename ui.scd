@@ -25,7 +25,8 @@
 	 //	postln("handle sound");
 	 //	~ui_sound_select = val;
 	 ~buf_idx[~ui_voice_select] = val;
-	 w[~ui_voice_select].bufnum = ~bufs[val].bufnum;
+	 w[~ui_voice_select].buf = ~bufs[val];
+	 ~bufs[val].postln;
 	 // making sound selection independent of route selection per voice
 	 ~refresh_sound.value();
  };
@@ -44,6 +45,22 @@
 	// set voice
 	w[~ui_voice_select].route.times[i] = val;
 };
+
+
+~handle_fadein = { arg val;
+	// set route data
+	~route_data[~ui_route_select].fadeIn = val;
+	// set voice
+	w[~ui_voice_select].route.fadeIn = val;
+};
+
+~handle_fadeout = { arg val;
+	// set route data
+	~route_data[~ui_route_select].fadeOut = val;
+	// set voice
+	w[~ui_voice_select].route.fadeOut = val;
+};
+
 
 ~handle_loop = { arg i, val;
 	~route_data[~ui_route_select].numLoops = val;
@@ -78,6 +95,16 @@
 ~refresh_node_time = { arg i;
 	~knob_time[i].value_(~route_data[~ui_route_select].times[i]);
 };
+
+
+~refresh_node_fadein = {
+	~knob_fadein.value_(~route_data[~ui_route_select].fadeIn);
+};
+
+~refresh_node_fadeout = {
+	~knob_fadeout.value_(~route_data[~ui_route_select].fadeOut);
+};
+
 
 ~refresh_loop = {
 	~knob_loop.value_(~route_data[~ui_route_select].numLoops);

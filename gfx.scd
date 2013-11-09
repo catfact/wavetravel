@@ -1,6 +1,6 @@
 
 // window
-~win = Window.new("wave traveller", Rect(0, 0, 900, 600));
+~win = Window.new("wave traveller", Rect(0, 0, 860, 660));
 ~win.view.background = Color.fromHexString("#112244");
 ~win.view.decorator = FlowLayout(~win.view.bounds, 10@10, 10@10);
 ~win.front;
@@ -142,7 +142,7 @@
 
 
 // time knob for each node, plus one for fadeout
-~knob_time = 5.collect({ arg i;
+~knob_time = 4.collect({ arg i;
 	EZKnob(
 		parent:~win, 
 		bounds:160@180, 
@@ -163,6 +163,51 @@
 		~handle_node_time.value(i, ez.value);
 	}
 });
+
+
+/// force a new line of widgets
+~win.view.decorator.nextLine;
+
+~knob_fadein = 	EZKnob(
+	parent:~win, 
+	bounds:160@180, 
+	knobSize:150@150, 
+	label:"fade in", 
+	layout:\vert2,
+	controlSpec:ControlSpec( 0.01, 20.0, warp:0.2, units:"sec" ), 
+).setColors(
+	stringBackground:Color.fromHexString(	"#333344"),
+	stringColor:Color.fromHexString(		"#ffffff"), 
+	numBackground:Color.fromHexString(		"#112244"), 
+	numStringColor:Color.fromHexString(		"#ffffff"), 
+	numNormalColor:Color.fromHexString(		"#ffffff"), 
+	numTypingColor:Color.fromHexString(		"#ffaaaa"), 
+	knobColors: [Color.fromHexString("#4466aa"), Color.fromHexString("#224499") ],
+	background:Color.fromHexString(			"#333355")
+).action = { arg ez;
+	~handle_node_fadein.value(i, ez.value);
+};
+
+~knob_fadeout = EZKnob(
+	parent:~win, 
+	bounds:160@180, 
+	knobSize:150@150, 
+	label:"fade out", 
+	layout:\vert2,
+	controlSpec:ControlSpec( 0.01, 20.0, warp:0.2, units:"sec" ), 
+).setColors(
+	stringBackground:Color.fromHexString(	"#333344"),
+	stringColor:Color.fromHexString(		"#ffffff"), 
+	numBackground:Color.fromHexString(		"#112244"), 
+	numStringColor:Color.fromHexString(		"#ffffff"), 
+	numNormalColor:Color.fromHexString(		"#ffffff"), 
+	numTypingColor:Color.fromHexString(		"#ffaaaa"), 
+	knobColors: [Color.fromHexString("#4466aa"), Color.fromHexString("#224499") ],
+	background:Color.fromHexString(			"#333355")
+).action = { arg ez;
+	~handle_node_fadeout.value(i, ez.value);
+};
+
 
 ~win.view.keyDownAction = {
 	arg view, char;

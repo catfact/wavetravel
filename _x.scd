@@ -9,9 +9,11 @@
 
 // external execution
 //~topdir = "/Users/don\ buchla/Desktop/wavetravel-master";
+~topdir = "/home/emb/sc/wavetravel";
 // Document class seems pretty broken on mac, sc3.6
-x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
-//x = { |p| this.executeFile(~topdir ++"/" ++ p); };
+/// hm, actually it seems intermittently broken everywhere! damn
+//x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
+x = { |p| this.executeFile(~topdir ++"/" ++ p); };
 
 
 //////////////////////////
@@ -67,8 +69,14 @@ Routine {
 		// Pipe wont work cause don's home directory has a space in its name.
 		// awesome
 		//		~bufs.add( Buffer.read(s, ~src_dir ++ "/" ++ "261.wav") );
-		s.sync;
+		//		s.sync;
 
+		postln("///////////////
+////////////////////////
+//// initializing ui... 
+");
+
+		x.postln;
 
 		// UI
 		// define glue
