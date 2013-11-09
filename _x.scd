@@ -8,10 +8,10 @@
 */
 
 // external execution
-~topdir = "/Users/don\ buchla/Desktop/wavetravel-master";
-// Document class seems pretyt broken on mac, sc3.6
-//x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
-x = { |p| this.executeFile(~topdir ++"/" ++ p); };
+//~topdir = "/Users/don\ buchla/Desktop/wavetravel-master";
+// Document class seems pretty broken on mac, sc3.6
+x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
+//x = { |p| this.executeFile(~topdir ++"/" ++ p); };
 
 
 //////////////////////////
@@ -32,8 +32,8 @@ x = { |p| this.executeFile(~topdir ++"/" ++ p); };
 /////////////////////////
 
 // path for sound files
-//~src_dir = 	"/home/emb/snd/src";
-~src_dir = ~topdir ++ "/snd";
+~src_dir = 	"/home/emb/snd/src";
+//~src_dir = ~topdir ++ "/snd";
 
 
 Routine {
@@ -43,17 +43,16 @@ Routine {
 	s.waitForBoot {
 
 		w = Array.fill(~num_voices, { WaveTravelVoice.new(s) });
-		w.do({ arg voice, i; voice.run(s); });
+		//		w.do({ arg voice, i; voice.run(s); });
 		s.sync;
 		// fill list of buffers from directory of soundfiles
 		// this will crap out with enough files (hundreds or thousands)
 		~bufs = List.new;
 
 		// FIXME: (i guess) - won't work on windows. use Platform
-
 		postln("searching for sounds in : " ++ ~src_dir);
 
-	/*
+	
 		p = Pipe.new("ls " ++ ~src_dir, "r");
 		~filename = p.getLine;
 		while( {~filename.notNil }, {
@@ -62,12 +61,12 @@ Routine {
 		~filename.postln;
 		});
 		p.close;
-*/
+
 
 		/// ughh...
 		// Pipe wont work cause don's home directory has a space in its name.
 		// awesome
-		~bufs.add( Buffer.read(s, ~src_dir ++ "/" ++ "261.wav") );
+		//		~bufs.add( Buffer.read(s, ~src_dir ++ "/" ++ "261.wav") );
 		s.sync;
 
 

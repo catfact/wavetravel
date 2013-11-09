@@ -132,7 +132,7 @@
 		knobColor:Color.fromHexString(			"#224499"),
 		background:Color.fromHexString(			"#333355")
 	).action = { arg ez;
-		~handle_select_channel.value(ez.value);
+		~handle_node_channel.value(i, ez.value);
 	}
 });
 

@@ -6,9 +6,7 @@
 ///// handler functions
 ~handle_select_voice = { arg val;
 	~ui_voice_select = val;
-	//	~handle_select_route.value( ~route_idx[val] );
 	~ui_route_select = ~route_idx[val];
-	//	~handle_select_sound.value( w[val].bufnum );
 	~refresh_select_voice.value();
 	~refresh_select_route.value();
 	~refresh_sound.value();
@@ -18,26 +16,26 @@
 ~handle_select_route = { arg val;
 	~ui_route_select = val;
 	~route_idx[~ui_voice_select] = val;
+	w[~ui_voice_select].route = ~route_data[~route_idx[~ui_voice_select]];
 	~refresh_select_route.value();
 	~refresh_loop.value();
-};
+ };
 
-~handle_sound = { arg val;
-	//	postln("handle sound");
-	//	~ui_sound_select = val;
-	~buf_idx[~ui_voice_select] = val;
-	w[~ui_voice_select].bufnum = ~bufs[val].bufnum;
-	// making sound selection independent of route selection per voice
-	~refresh_sound.value();
-};
+ ~handle_sound = { arg val;
+	 //	postln("handle sound");
+	 //	~ui_sound_select = val;
+	 ~buf_idx[~ui_voice_select] = val;
+	 w[~ui_voice_select].bufnum = ~bufs[val].bufnum;
+	 // making sound selection independent of route selection per voice
+	 ~refresh_sound.value();
+ };
 
-~handle_node_channel = { arg i, val; 
-
-	/// set route data
-	~route_data[~ui_route_select].targets[i] = val;
-	// set voice
-	w[~ui_voice_select].route.targets[i] = val; // = ~route_data[~ui_route_select].targets;
-	//	~refresh_node_channel.value(i);
+ ~handle_node_channel = { arg i, val; 
+	 /// set route data
+	 ~route_data[~ui_route_select].targets[i] = val;
+	 // set voice
+	 w[~ui_voice_select].route.targets[i] = val;
+	 ~refresh_node_channel.value(i);
 };
 
 ~handle_node_time = { arg i, val;
