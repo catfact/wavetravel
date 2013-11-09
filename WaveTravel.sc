@@ -137,6 +137,8 @@ WaveTravelVoice {
 				\buf, buf, \pos, pos, \rate, rate,
 				\atk, atk, \rel, rel, \curve, \exp
 			]).map(\amp, ampBus);
+
+			postln("\r\n fading in, target: "++route.targets[0]++" ; time: "++ route.fadeIn);
 			
 			Synth.new(\fadeEnv, [
 				\out, ampBus.index + route.targets[0],
@@ -177,9 +179,7 @@ WaveTravelVoice {
 
 				// process nodes
 				n.do({ arg node;
-					//					var prev;
 					var target, time;
-					//		prev = route.targets[node];
 					target = route.targets.wrapAt(node + 1);
 					time = route.times.wrapAt(node + 1);	
 					post("\r\n node index: "++node++
@@ -196,7 +196,7 @@ WaveTravelVoice {
 						postln("crossfading, bus values: " ++ val);
 						val.do({ arg v, i;
 							if(i == target, {
-							// fade in the target bus
+								// fade in the target bus
 								Synth.new(\fadeEnv, [
 									\out, ampBus.index + i,
 									\start, v,
@@ -205,17 +205,19 @@ WaveTravelVoice {
 									\curve, curve
 								], xg);	
 							}, {	
-								// fade out everything else
-								Synth.new(\fadeEnv, [
-									\out, ampBus.index + i,
-									\start, v,
-									\end, 0.0,
-									\dur, time,
-									\curve, curve
-								], xg);	
+								// fade out everything else that's non-zero
+								if(v > 0.0, {
+									Synth.new(\fadeEnv, [
+										\out, ampBus.index + i,
+										\start, v,
+										\end, 0.0,
+										\dur, time,
+										\curve, curve
+									], xg);	
+								});
 							});
 						});
-								
+						
 					});
 					time.wait;
 				});
@@ -232,21 +234,23 @@ WaveTravelVoice {
 						val.do({ 
 							arg v, i;
 							postln("\r\n fading out; bus index: "++i++" ; value: "++v);
-							// fade out all busses
-							Synth.new(\fadeEnv, [
-								\out, ampBus.index + i,
-								\start, v,
-								\end, 0.0,
-								\dur, route.fadeOut,
-								\curve, \exp
-							], xg);
+							// fade out all nonzero busses
+							if(v > 0.0, {
+								Synth.new(\fadeEnv, [
+									\out, ampBus.index + i,
+									\start, v,
+									\end, 0.0,
+									\dur, route.fadeOut,
+									\curve, \exp
+								], xg);
+							});
 						});
 					});
 				});
 			}) // loops
-			
+
 		}.play;
-	} // WaveTravelVoice.play
+} // WaveTravelVoice.play
 }				
 
 // UI class...
