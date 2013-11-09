@@ -44,7 +44,9 @@ WaveTravelVoice {
 	// sequence data
 	var <>route;
 	// fade group
-	var <>fg;
+	var <>fadeGroup;
+	// playback group
+	var <>playGroup
 	// output channel offset
 	var <>outOffset = 0;
 
@@ -110,7 +112,8 @@ WaveTravelVoice {
 
 			route = WaveTravelRoute.new;
 
-			fg = Group.new(s);
+			fadeGroup = Group.new(s);
+			playGroup = Group.new(s);
 
 		}).play; // init routine
 
@@ -133,7 +136,7 @@ WaveTravelVoice {
 				\buf, buf, \pos, pos, \rate, rate,
 				\atk, atk, \rel, rel, \curve, \exp,
 				\out, outOffset
-			]).map(\amp, ampBus);
+			], playGroup).map(\amp, ampBus);
 
 			postln("\r\n fading in, target: "++route.targets[0]++" ; time: "++ route.fadeIn);
 			
@@ -143,7 +146,7 @@ WaveTravelVoice {
 				\end, 1.0,
 				\dur, route.fadeIn,
 				\curve, curve
-			], fg);
+			], fadeGroup);
 
 			route.fadeIn.wait;
 			
@@ -170,7 +173,7 @@ WaveTravelVoice {
 					\buf, buf, \pos, pos, \rate, rate,
 					\atk, atk, \rel, rel,
 					\out, outOffset
-				]).map(\amp, ampBus);
+				], playGroup).map(\amp, ampBus);
 				
 				postln("\r\n playing sample, duration: "++ dur);
 				postln("");
@@ -184,7 +187,7 @@ WaveTravelVoice {
 						" ; target: "++target++" ; time: "++time);
 					
 					// kill any running fades
-					fg.freeAll;
+					fadeGroup.freeAll;
 					server.sync;
 
 					// fade out the last channel and fade in the new one.
@@ -201,7 +204,7 @@ WaveTravelVoice {
 									\end, 1.0,
 									\dur, time,
 									\curve, curve
-								], fg);	
+								], fadeGroup);	
 							}, {	
 								// fade out everything else that's non-zero
 								if(v > 0.0, {
@@ -211,7 +214,7 @@ WaveTravelVoice {
 										\end, 0.0,
 										\dur, time,
 										\curve, curve
-									], fg);	
+									], fadeGroup);	
 								});
 							});
 						});
@@ -225,7 +228,7 @@ WaveTravelVoice {
 					postln("fadeout, time: "++route.fadeOut);
 
 					// kill any running fades
-					fg.freeAll;
+					fadeGroup.freeAll;
 					server.sync;
 					ampBus.getn(12, {
 						arg val; // array of bus values		
@@ -240,7 +243,7 @@ WaveTravelVoice {
 									\end, 0.0,
 									\dur, route.fadeOut,
 									\curve, \exp
-								], fg);
+								], fadeGroup);
 							});
 						});
 					});
