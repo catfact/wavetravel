@@ -43,12 +43,10 @@ WaveTravelVoice {
 	var <>ampBus;
 	// sequence data
 	var <>route;
-
-	// groups for routing : input, process, output
-	var <ig, <xg, <og;
-
-	// fade buffer size
-	var <fadeBufSize = 2048;
+	// fade group
+	var <>fg;
+	// output channel offset
+	var <>outOffset = 0;
 
 	/// TODO:
 	// do we need a handle to 1-shot synths?
@@ -112,9 +110,7 @@ WaveTravelVoice {
 
 			route = WaveTravelRoute.new;
 
-			ig = Group.new(s);
-			xg = Group.after(ig);
-			og = Group.after(xg);
+			fg = Group.new(s);
 
 		}).play; // init routine
 
@@ -135,7 +131,8 @@ WaveTravelVoice {
 			syn = Synth.new(\waveTravelPlay, [
 				\dur, route.fadeIn, 
 				\buf, buf, \pos, pos, \rate, rate,
-				\atk, atk, \rel, rel, \curve, \exp
+				\atk, atk, \rel, rel, \curve, \exp,
+				\out, outOffset
 			]).map(\amp, ampBus);
 
 			postln("\r\n fading in, target: "++route.targets[0]++" ; time: "++ route.fadeIn);
@@ -146,7 +143,7 @@ WaveTravelVoice {
 				\end, 1.0,
 				\dur, route.fadeIn,
 				\curve, curve
-			], xg);
+			], fg);
 
 			route.fadeIn.wait;
 			
@@ -171,7 +168,8 @@ WaveTravelVoice {
 				syn = Synth.new(\waveTravelPlay, [
 					\dur, dur, 
 					\buf, buf, \pos, pos, \rate, rate,
-					\atk, atk, \rel, rel
+					\atk, atk, \rel, rel,
+					\out, outOffset
 				]).map(\amp, ampBus);
 				
 				postln("\r\n playing sample, duration: "++ dur);
@@ -186,7 +184,7 @@ WaveTravelVoice {
 						" ; target: "++target++" ; time: "++time);
 					
 					// kill any running fades
-					xg.freeAll;
+					fg.freeAll;
 					server.sync;
 
 					// fade out the last channel and fade in the new one.
@@ -203,7 +201,7 @@ WaveTravelVoice {
 									\end, 1.0,
 									\dur, time,
 									\curve, curve
-								], xg);	
+								], fg);	
 							}, {	
 								// fade out everything else that's non-zero
 								if(v > 0.0, {
@@ -213,7 +211,7 @@ WaveTravelVoice {
 										\end, 0.0,
 										\dur, time,
 										\curve, curve
-									], xg);	
+									], fg);	
 								});
 							});
 						});
@@ -227,7 +225,7 @@ WaveTravelVoice {
 					postln("fadeout, time: "++route.fadeOut);
 
 					// kill any running fades
-					xg.freeAll;
+					fg.freeAll;
 					server.sync;
 					ampBus.getn(12, {
 						arg val; // array of bus values		
@@ -242,7 +240,7 @@ WaveTravelVoice {
 									\end, 0.0,
 									\dur, route.fadeOut,
 									\curve, \exp
-								], xg);
+								], fg);
 							});
 						});
 					});
