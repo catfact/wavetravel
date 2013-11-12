@@ -1,23 +1,12 @@
 
 // window
-~win = Window.new("wave traveller", Rect(0, 0, 860, 660));
+~win = Window.new("wave traveller", Rect(0, 0, 760, 760));
 ~win.view.background = Color.fromHexString("#112244");
 ~win.view.decorator = FlowLayout(~win.view.bounds, 10@10, 10@10);
 ~win.front;
 
 
-// play button
-~button_play = Button(~win, 420 @ 40);
-
-~button_play.states = [
-	[" play ", Color.fromHexString("#8888ff"), Color.fromHexString("#444499") ]
-];
-
-~button_play.action_({
-	arg but;
-	~handle_play.value;
-});
-
+// load files button
 ~button_loadfiles = Button(~win, 420 @ 40);
 
 ~button_loadfiles.states = [
@@ -47,6 +36,18 @@
 	}); // end of dialog action
 });
 
+
+// play button
+~button_play = Button(~win, 420 @ 40);
+
+~button_play.states = [
+	[" play ", Color.fromHexString("#8888ff"), Color.fromHexString("#444499") ]
+];
+
+~button_play.action_({
+	arg but;
+	~handle_play.value;
+});
 
 /// force a new line of widgets
 ~win.view.decorator.nextLine;

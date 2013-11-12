@@ -10,12 +10,16 @@
 	~refresh_select_voice.value();
 	~refresh_select_route.value();
 	~refresh_sound.value();
+	~refresh_loop.value();
+	~refresh_knob_fadein.value();
+	~refresh_knob_fadeout.value();
 };
 
 ~handle_select_route = { arg val;
 	~ui_route_select = val;
 	~route_idx[~ui_voice_select] = val;
 	w[~ui_voice_select].route = ~route_data[~route_idx[~ui_voice_select]];
+
 	~refresh_select_route.value();
 	~refresh_loop.value();
 	~refresh_knob_fadein.value();
@@ -28,7 +32,7 @@
 	 //	~ui_sound_select = val;
 	 ~buf_idx[~ui_voice_select] = val;
 	 w[~ui_voice_select].buf = ~bufs[val];
-	 ~bufs[val].postln;
+	 //	 ~bufs[val].postln;
 	 // making sound selection independent of route selection per voice
 	 ~refresh_sound.value();
  };
@@ -75,8 +79,19 @@
 	w[~ui_voice_select].play(atk:minFade, rel:minFade);
 };
 
-
+/////////////////////////////////
+////////////////////////////
 ///// refresh functions
+/*
+~refresh_everything = {
+	~refresh_select_voice.value();
+	~refresh_select_route.value();
+	~refresh_loop.value();
+	~refresh_knob_fadein.value();
+	~refresh_knob_fadeout.value();
+}
+*/
+
 ~refresh_select_voice = {
 	// ~refresh_select_route and ~refresh_sound 
 	// already called in handler.

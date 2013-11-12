@@ -4,8 +4,8 @@
 
 	first implementation using environment vars.
 	should wrap in a class when "finished"
-
 */
+
 
 // path of this document:
 // Document class seems pretty broken on mac, sc3.6
@@ -14,7 +14,7 @@
 /// so, instead of doing this:
 //x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
 
-// we have to do this and change it manually
+// we have to do this and change it manually... 
 //~topdir = "/Users/don\ buchla/Desktop/wavetravel-master";
 ~topdir = "/home/emb/sc/wavetravel";
 
@@ -25,6 +25,8 @@ x = { |p| this.executeFile(~topdir ++"/" ++ p); };
 /// FIXME: bad practice to use global env variables.
 /// included files may or may not assume the existence of these.
 /// should wrap in e.g. WaveTravelApp
+/// this will also make it easy to archive the state of the app.
+
 /// globals
 ~num_voices = 6;
 ~num_channels = 12;
@@ -36,16 +38,12 @@ x = { |p| this.executeFile(~topdir ++"/" ++ p); };
 ~route_idx = Array.fill(~num_voices, { |i| i });
 // slected sound for voice
 ~buf_idx = Array.fill(~num_voices, { 0 });
+
 /////////////////////////
-
-// path for sound files
-~src_dir = 	"/home/emb/snd/src";
-//~src_dir = ~topdir ++ "/snd";
-
 
 Routine {
 	s = Server.local;
-//	s.freeAll;
+	s.freeAll;
 
 	s.waitForBoot {
 
@@ -54,19 +52,20 @@ Routine {
 		// empty list, use GUI to populate
 		~bufs = List.new;
 
-		postln("///////////////
-////////////////////////
-//// initializing ui... 
-");
-
 		x.postln;
 
 		// UI
 		// define glue
 		x.value("ui.scd");
 		// instantiate graphic widgets
-		{ x.value("gfx.scd"); }.defer;
+		{ 
+			x.value("gfx.scd"); 
+			// select 1st value for editing and update widgets
+			~handle_select_voice.value(0); 
+		}.defer;
 
+		
+		
 		// MIDI
 		//	x.value("midi.scd");
 
@@ -75,3 +74,18 @@ Routine {
 
 
 }.play;
+
+
+
+
+
+// fn to archive the current state of the application
+~write_archive  = {
+	// TODO: use a monolithic application class and .writeArchive
+};
+
+
+// fn to extract state of application from archive, 
+~read_archive  ={
+	// TODO: use a monolithic application class and .readArchive
+};
