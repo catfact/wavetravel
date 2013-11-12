@@ -46,7 +46,7 @@ WaveTravelVoice {
 	// fade group
 	var <>fadeGroup;
 	// playback group
-	var <>playGroup
+	var <>playGroup;
 	// output channel offset
 	var <>outOffset = 0;
 
