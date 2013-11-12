@@ -10,7 +10,6 @@
 	~refresh_select_voice.value();
 	~refresh_select_route.value();
 	~refresh_sound.value();
-	~refresh_loop.value();
 };
 
 ~handle_select_route = { arg val;
@@ -19,6 +18,9 @@
 	w[~ui_voice_select].route = ~route_data[~route_idx[~ui_voice_select]];
 	~refresh_select_route.value();
 	~refresh_loop.value();
+	~refresh_knob_fadein.value();
+	~refresh_knob_fadeout.value();
+
  };
 
  ~handle_sound = { arg val;
@@ -67,9 +69,17 @@
 	w[~ui_voice_select].route.numLoops = val;
 };
 
+~handle_play = { 
+	// find the shortest fade time and use this as playback atk/rel
+	var minFade = w[~ui_voice_select].route.times.minItem;
+	w[~ui_voice_select].play(atk:minFade, rel:minFade);
+};
+
 
 ///// refresh functions
 ~refresh_select_voice = {
+	// ~refresh_select_route and ~refresh_sound 
+	// already called in handler.
 	//...
 };
 
@@ -98,11 +108,11 @@
 };
 
 
-~refresh_node_fadein = {
+~refresh_knob_fadein = {
 	~knob_fadein.value_(~route_data[~ui_route_select].fadeIn);
 };
 
-~refresh_node_fadeout = {
+~refresh_knob_fadeout = {
 	~knob_fadeout.value_(~route_data[~ui_route_select].fadeOut);
 };
 

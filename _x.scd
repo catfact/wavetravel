@@ -7,14 +7,19 @@
 
 */
 
-// external execution
+// path of this document:
+// Document class seems pretty broken on mac, sc3.6
+/// hm, actually it seems intermittently broken everywhere? damn
+
+/// so, instead of doing this:
+//x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
+
+// we have to do this and change it manually
 //~topdir = "/Users/don\ buchla/Desktop/wavetravel-master";
 ~topdir = "/home/emb/sc/wavetravel";
-// Document class seems pretty broken on mac, sc3.6
-/// hm, actually it seems intermittently broken everywhere! damn
-//x = { |p| this.executeFile(Document.current.dir ++"/" ++ p); };
-x = { |p| this.executeFile(~topdir ++"/" ++ p); };
 
+// external execution function
+x = { |p| this.executeFile(~topdir ++"/" ++ p); };
 
 //////////////////////////
 /// FIXME: bad practice to use global env variables.
@@ -45,31 +50,9 @@ Routine {
 	s.waitForBoot {
 
 		w = Array.fill(~num_voices, { WaveTravelVoice.new(s) });
-		//		w.do({ arg voice, i; voice.run(s); });
 		s.sync;
-		// fill list of buffers from directory of soundfiles
-		// this will crap out with enough files (hundreds or thousands)
+		// empty list, use GUI to populate
 		~bufs = List.new;
-
-		// FIXME: (i guess) - won't work on windows. use Platform
-		postln("searching for sounds in : " ++ ~src_dir);
-
-	
-		p = Pipe.new("ls " ++ ~src_dir, "r");
-		~filename = p.getLine;
-		while( {~filename.notNil }, {
-		~bufs.add( Buffer.read(s, ~src_dir ++ "/" ++ ~filename) );
-		~filename = p.getLine;
-		~filename.postln;
-		});
-		p.close;
-
-
-		/// ughh...
-		// Pipe wont work cause don's home directory has a space in its name.
-		// awesome
-		//		~bufs.add( Buffer.read(s, ~src_dir ++ "/" ++ "261.wav") );
-		//		s.sync;
 
 		postln("///////////////
 ////////////////////////

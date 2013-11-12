@@ -73,17 +73,14 @@ WaveTravelVoice {
 			SynthDef.new(\waveTravelPlay, {
 				arg out, buf, 
 				amp = #[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-				dur=1.0, pos=0.0, rate=1.0,
+				sus=1.0, pos=0.0, rate=1.0,
 				atk = 0.1, rel=0.1, curve=\welch;
 				var ampenv, play;
 
 				ampenv = EnvGen.ar (
 					Env.linen ( 
 						attackTime:atk, 
-						// sustainTime:dur - atk - rel, 
-						// actually add atk and rel to the duration.
-						// result is a sort of delayed crossfade
-						sustainTime:dur, 
+						sustainTime:sus, 
 						releaseTime:rel, 
 						curve:curve
 					), doneAction:2 
@@ -124,7 +121,7 @@ WaveTravelVoice {
 	// note: position is given in samples!
 	// spec for the instrument doesn't provide start position,
 	// so i guess its no big deal.
-	play { arg pos = 0.0, rate=1.0, atk=0.5, rel=0.5, curve=\welch;
+	play { arg pos = 0.0, rate=1.0, atk=0.05, rel=0.05, curve=\welch;
 		var syn;
 		
 		postln("playing buffer: "++buf);
@@ -132,27 +129,28 @@ WaveTravelVoice {
 		Routine {
 			// fade in from the position argument.
 			syn = Synth.new(\waveTravelPlay, [
-				\dur, route.fadeIn, 
+				\sus, route.fadeIn - atk, 
 				\buf, buf, \pos, pos, \rate, rate,
-				\atk, atk, \rel, rel, \curve, \exp,
+				\atk, atk, \rel, rel, \curve, \welch,
 				\out, outOffset
 			], playGroup).map(\amp, ampBus);
 
 			postln("\r\n fading in, target: "++route.targets[0]++" ; time: "++ route.fadeIn);
-			
+			// the fadin should have a different curve from crossfade
 			Synth.new(\fadeEnv, [
 				\out, ampBus.index + route.targets[0],
 				\start, 0.0,
 				\end, 1.0,
 				\dur, route.fadeIn,
-				\curve, curve
+				\curve, \sine
 			], fadeGroup);
+			
 
 			route.fadeIn.wait;
-			
+		
 			// loop back to the position reached at the end of fadein... 
 			// not totally sure this was the desired behavior...
-			// but looping back to the fadein position seems weird.
+			// but e.g. looping back to the fadein position seems weird.
 			pos = pos + (route.fadeIn * buf.sampleRate);
 
 			route.numLoops.do({ arg loop;
@@ -169,9 +167,11 @@ WaveTravelVoice {
 
 				// play the sample
 				syn = Synth.new(\waveTravelPlay, [
-					\dur, dur, 
+					// time it so that loop fadeout occurs
+					// just as next playback is started.
 					\buf, buf, \pos, pos, \rate, rate,
 					\atk, atk, \rel, rel,
+					\sus, dur - atk, 
 					\out, outOffset
 				], playGroup).map(\amp, ampBus);
 				
@@ -242,7 +242,7 @@ WaveTravelVoice {
 									\start, v,
 									\end, 0.0,
 									\dur, route.fadeOut,
-									\curve, \exp
+									\curve, \cubed
 								], fadeGroup);
 							});
 						});

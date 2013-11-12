@@ -7,7 +7,7 @@
 
 
 // play button
-~button_play = Button(~win, 880 @ 40);
+~button_play = Button(~win, 420 @ 40);
 
 ~button_play.states = [
 	[" play ", Color.fromHexString("#8888ff"), Color.fromHexString("#444499") ]
@@ -15,9 +15,41 @@
 
 ~button_play.action_({
 	arg but;
-	/// FIXME: must add playback position, i think
-	w[~ui_voice_select].play;
+	~handle_play.value;
 });
+
+~button_loadfiles = Button(~win, 420 @ 40);
+
+~button_loadfiles.states = [
+	[" load files ", Color.fromHexString("#8888ff"), Color.fromHexString("#444499") ]
+];
+
+~button_loadfiles.action_({
+	// open a Dialog to choose files, initialize buffers
+	Dialog.getPaths({ arg paths; 
+		// this action doesn't happen if the selection is cancelled by OS.
+		// so assume we have something.
+		// free all the old buffers
+		~bufs.do({ arg buf; buf.free; });
+		~bufs = List.new;
+		// create all the new buffers, warn if something went wrong.
+		paths.do({ arg p;
+			~bufs.add( Buffer.read(s, p, action:{ 
+				// completion message
+				arg buf;
+				buf.postln;
+			}) );
+		});
+		// reassign all the voices to the new buffers by index, why not
+		w.do({ arg voice, i; voice.buf = ~bufs.wrapAt(i); });
+		// update the selection knob widget
+		~knob_sound.controlSpec = ControlSpec( 0, ~bufs.size - 1, step:1 );
+	}); // end of dialog action
+});
+
+
+/// force a new line of widgets
+~win.view.decorator.nextLine;
 
 // voice selection
 ~knob_voice = EZKnob(
@@ -185,7 +217,7 @@
 	knobColors: [Color.fromHexString("#4466aa"), Color.fromHexString("#224499") ],
 	background:Color.fromHexString(			"#333355")
 ).action = { arg ez;
-	~handle_node_fadein.value(i, ez.value);
+	~handle_fadein.value(ez.value);
 };
 
 ~knob_fadeout = EZKnob(
@@ -205,10 +237,10 @@
 	knobColors: [Color.fromHexString("#4466aa"), Color.fromHexString("#224499") ],
 	background:Color.fromHexString(			"#333355")
 ).action = { arg ez;
-	~handle_node_fadeout.value(i, ez.value);
+	~handle_fadeout.value(ez.value);
 };
 
-
+// hm, not working
 ~win.view.keyDownAction = {
 	arg view, char;
 	if(char == $ , {
